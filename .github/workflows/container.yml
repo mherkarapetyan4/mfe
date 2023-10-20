@@ -33,7 +33,7 @@ jobs:
           AWS_REGION: us-east-1
       - name: Copy built files to S3
         run: |
-          aws s3 sync --delete dist s3://${{ secrets.AWS_S3_BUCKET_NAME }}/container/latest
+          aws s3 sync --profile sts --delete dist s3://${{ secrets.AWS_S3_BUCKET_NAME }}/container/latest
       - name: Invalidate container index.html from Cloudfront
         run: |
           aws cloudfront create-invalidation --distribution-id ${{ secrets.AWS_DISTRIBUTION_ID }} --paths "/container/latest/index.html"
