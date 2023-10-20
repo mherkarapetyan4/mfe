@@ -16,24 +16,13 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v2
-      - name: Install NPM dependencies
-        run: npm install
-      - name: Build Container application
-        run: npm run build
-      - name: Configure AWS credentials for IAM user
-        uses: jakejarvis/s3-sync-action@v0.3.0
-        with:
-          args: --acl public-read --follow-symlinks --delete
+      - uses: actions/checkout@v2
+      - run: npm install
+      - run: npm run build
+
+      - uses: imehedi/actions-awscli-v2@v1.0.17
+      - run: aws s3 sync dist s3://${{ secrets.AWS_S3_BUCKET_NAME }}/container/latest
         env:
-          AWS_S3_BUCKET: ${{ secrets.AWS_S3_BUCKET_NAME }}
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          AWS_REGION: us-east-1
-      - name: Copy built files to S3
-        run: |
-          aws s3 sync --profile sts --delete dist s3://${{ secrets.AWS_S3_BUCKET_NAME }}/container/latest
-      - name: Invalidate container index.html from Cloudfront
-        run: |
-          aws cloudfront create-invalidation --distribution-id ${{ secrets.AWS_DISTRIBUTION_ID }} --paths "/container/latest/index.html"
+          AWS_DEFAULT_REGION: us-east-1
